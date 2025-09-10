@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voting System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  {% load static %}
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col font-[Inter]">
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-14 items-center">
+        <a href="{% url 'index' %}" class="text-xl font-bold text-blue-600">🗳️ GCTU Voting</a>
+        <div class="flex items-center gap-4">
+          <span class="text-sm text-gray-600">
+            {{ request.user.student_profile.first_name }} {{ request.user.student_profile.last_name }}
+          </span>
+          <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg">
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Banner -->
+  <div class="relative h-40 w-full">
+    <img src="{% static 'images/school-banner.jpg' %}" alt="School Banner" class="h-full w-full object-cover" />
+    <div class="absolute inset-0 bg-black/40 flex items-center px-6">
+      <h1 class="text-white text-2xl font-semibold">Welcome to the GCTU Voting Portal</h1>
+    </div>
+  </div>
+
+  <!-- Voting Section -->
+  <div class="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+    <!-- Progress -->
+    <div class="flex justify-center gap-2 mb-6 flex-wrap">
+      {% for category in categories %}
+      <div class="step px-3 py-1.5 rounded-full text-sm font-medium 
+        {% if forloop.first %} bg-blue-600 text-white {% else %} bg-gray-200 text-gray-600 {% endif %}">
+        Step {{ forloop.counter }}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Categories -->
+    <form id="vote-form" method="POST" action="{% url 'vote' %}" class="space-y-8">
+      {% csrf_token %}
+      {% for category in categories %}
+      <div class="category hidden {% if forloop.first %}block{% endif %}" data-index="{{ forloop.counter0 }}">
+        <h2 class="text-center text-lg font-semibold text-blue-600 mb-4">{{ category.name }}</h2>
+
+        <div class="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+          {% for candidate in category.candidate_set.all %}
+          <label class="candidate-card cursor-pointer group">
+            <input type="radio" name="category-{{ category.id }}" value="{{ candidate.id }}" class="hidden peer" />
+            <div class="border rounded-xl bg-white shadow-sm p-4 flex flex-col items-center transition-all 
+                        peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-300">
+              <img src="{{ candidate.photo.url }}" alt="{{ candidate.name }}" 
+                   class="h-32 w-full object-cover rounded-lg mb-3 group-hover:scale-105 transition-transform" />
+              <h3 class="font-medium text-gray-800">{{ candidate.name }}</h3>
+              <p class="text-xs text-gray-500 mt-1">Candidate {{ forloop.counter }}</p>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between pt-6">
+        <button type="button" class="prev hidden bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2 rounded-lg">Previous</button>
+        <button type="button" class="next bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">Next</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal -->
+  <div id="confirm-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md text-center">
+      <h2 class="text-lg font-semibold mb-2">Confirm Your Vote</h2>
+      <p class="text-sm text-gray-600">Once you submit, you cannot change your vote. Proceed?</p>
+      <div class="mt-6 flex justify-center gap-3">
+        <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg">Cancel</button>
+        <button class="confirm-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center text-sm text-gray-500 py-4">
+    © 2025 GCTU Voting System
+  </footer>
+
+  <!-- Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const steps = document.querySelectorAll(".step");
+      const categories = document.querySelectorAll(".category");
+      const prevBtn = document.querySelector(".prev");
+      const nextBtn = document.querySelector(".next");
+      const modal = document.getElementById("confirm-modal");
+      const cancelBtn = document.querySelector(".cancel-btn");
+      const confirmBtn = document.querySelector(".confirm-btn");
+      const form = document.getElementById("vote-form");
+
+      let current = 0;
+
+      function updateView() {
+        categories.forEach((c, i) => c.classList.toggle("hidden", i !== current));
+        steps.forEach((s, i) => {
+          s.classList.toggle("bg-blue-600", i === current);
+          s.classList.toggle("text-white", i === current);
+          s.classList.toggle("bg-gray-200", i !== current);
+          s.classList.toggle("text-gray-600", i !== current);
+        });
+        prevBtn.classList.toggle("hidden", current === 0);
+        nextBtn.textContent = current === categories.length - 1 ? "Submit" : "Next";
+        nextBtn.disabled = !categories[current].querySelector("input:checked");
+        nextBtn.classList.toggle("opacity-50", nextBtn.disabled);
+      }
+
+      document.querySelectorAll(".candidate-card input").forEach(input => {
+        input.addEventListener("change", () => updateView());
+      });
+
+      prevBtn.addEventListener("click", () => {
+        if (current > 0) {
+          current--;
+          updateView();
+        }
+      });
+
+      nextBtn.addEventListener("click", () => {
+        if (current < categories.length - 1) {
+          current++;
+          updateView();
+        } else {
+          modal.classList.remove("hidden");
+        }
+      });
+
+      cancelBtn.addEventListener("click", () => modal.classList.add("hidden"));
+      confirmBtn.addEventListener("click", () => form.submit());
+
+      updateView();
+    });
+  </script>
+</body>
+</html>

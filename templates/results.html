@@ -1,0 +1,188 @@
+<!-- @format -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voting Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% load static %}
+  </head>
+  <body
+    class="bg-gray-100 font-[Inter] bg-gradient-to-br from-blue-900 via-black to-blue-800 text-gray-800">
+    <!-- Navbar -->
+    <nav
+      class="bg-from-blue-900 via-black to-blue-800 text-gray-100 shadow-md sticky top-0 z-20">
+      <div
+        class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <!-- Brand -->
+        <a
+          href="{% url 'index' %}"
+          class="text-white font-bold text-xl tracking-wide">
+          🗳️ School Voting System
+        </a>
+
+        <!-- Mobile Menu Button -->
+        <button id="menu-btn" class="md:hidden text-white focus:outline-none">
+          ☰
+        </button>
+
+        <!-- Links + User -->
+        <div
+          id="menu"
+          class="hidden md:flex flex-col md:flex-row md:items-center md:space-x-6 absolute md:static bg-blue-600 md:bg-transparent left-0 top-14 w-full md:w-auto p-4 md:p-0 shadow-md md:shadow-none">
+          <a
+            href="{% url 'index' %}"
+            class="text-white hover:text-yellow-300 block py-2 md:py-0"
+            >Dashboard</a
+          >
+          <a
+            href="{% url 'results' %}"
+            class="text-yellow-300 font-semibold block py-2 md:py-0"
+            >Results</a
+          >
+          <a
+            href="{% url 'verify_vote' %}"
+            class="text-white hover:text-yellow-300 block py-2 md:py-0"
+            >Verify Vote</a
+          >
+
+          <!-- User -->
+          <div
+            class="flex items-center space-x-3 bg-white rounded-full px-4 py-1 shadow mt-3 md:mt-0">
+            <span class="text-sm font-medium text-gray-700">
+              {{ request.user.student_profile.first_name }} {{
+              request.user.student_profile.last_name }}
+            </span>
+            <form method="POST" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="text-red-600 text-sm font-semibold hover:underline">
+                Logout
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto px-4 py-10 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-100">
+        📊 Voting Results
+      </h1>
+      <p class="text-gray-100 mt-2">Updated as of {{ current_time }}</p>
+    </header>
+
+    <!-- Results Section -->
+    <main class="max-w-5xl mx-auto px-4 pb-16 space-y-5">
+      {% for category in results %}
+      <section class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h2 class="text-xl font-bold text-blue-600 mb-6">
+          {{ category.name }} Category
+        </h2>
+
+        <!-- Candidate Grid -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {% for candidate in category.candidates %}
+          <div
+            class="relative border rounded-lg p-5 shadow transition {% if candidate.is_winner %} border-yellow-400 bg-yellow-50 ring-2 ring-yellow-400 {% else %} bg-gray-50 hover:shadow-md {% endif %}">
+            <!-- Winner Badge -->
+            {% if candidate.is_winner %}
+            <span
+              class="absolute -top-3 left-3 bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full shadow animate-bounce">
+              🏆 Winner
+            </span>
+            {% endif %}
+
+            <h3 class="text-lg font-semibold text-gray-800">
+              {{ candidate.name }}
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">
+              {{ candidate.votes }} vote{{ candidate.votes|pluralize }}
+            </p>
+
+            <!-- Progress bar -->
+            <div
+              class="mt-4 w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                class="bg-blue-600 h-3 rounded-full transition-all"
+                style="width: {{ candidate.percentage }}%"></div>
+            </div>
+            <p class="mt-2 text-sm text-gray-600">
+              {{ candidate.percentage|floatformat:1 }}%
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Chart -->
+        <div class="mt-10">
+          <div class="w-full h-64 md:h-60 lg:h-56">
+            <canvas
+              id="chart-{{ category.name|slugify }}"
+              class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </section>
+      {% empty %}
+      <p class="text-center text-gray-500">No results available.</p>
+      {% endfor %}
+    </main>
+
+    <!-- Charts Script -->
+    <script>
+      // Navbar toggle
+      const menuBtn = document.getElementById("menu-btn");
+      const menu = document.getElementById("menu");
+      menuBtn.addEventListener("click", () => {
+        menu.classList.toggle("hidden");
+      });
+
+      // Chart.js
+      document.addEventListener("DOMContentLoaded", () => {
+        {% for category in results %}
+        new Chart(
+          document.getElementById("chart-{{ category.name|slugify }}"),
+          {
+            type: "bar",
+            data: {
+              labels: [{% for candidate in category.candidates %}"{{ candidate.name }}",{% endfor %}],
+              datasets: [{
+                label: "Votes",
+                data: [{% for candidate in category.candidates %}{{ candidate.votes }},{% endfor %}],
+                backgroundColor: [
+                  "#2563eb", // blue
+                  "#facc15", // yellow
+                  "#f87171", // red
+                  "#34d399", // green
+                  "#a78bfa"  // purple
+                ],
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false, // ✅ responsive fix
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "#1f2937",
+                  titleColor: "#f9fafb",
+                  bodyColor: "#f9fafb",
+                }
+              },
+              scales: {
+                y: { beginAtZero: true }
+              }
+            }
+          }
+        );
+        {% endfor %}
+      });
+    </script>
+  </body>
+</html>

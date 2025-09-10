@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #555;
+        }
+        .vote-info {
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .copy-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .download-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .continue-btn {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vote Confirmation</h1>
+        <p>Your vote has been recorded successfully. Below are your vote details for verification purposes. This is your <strong>only opportunity</strong> to copy or download this information.</p>
+        {% if messages %}
+            {% for message in messages %}
+                <p style="color: {% if message.tags == 'error' %}red{% else %}green{% endif %};">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+        <div>
+            <h3>Encrypted Vote</h3>
+            <div class="vote-info">{{ encrypted_vote }}</div>
+            <button class="button copy-btn" onclick="copyToClipboard('{{ encrypted_vote }}')">Copy Encrypted Vote</button>
+        </div>
+        <div>
+            <h3>Block Hash</h3>
+            <div class="vote-info">{{ block_hash }}</div>
+            <button class="button copy-btn" onclick="copyToClipboard('{{ block_hash }}')">Copy Block Hash</button>
+        </div>
+        <div>
+            <h3>Timestamp</h3>
+            <p>{{ timestamp }}</p>
+        </div>
+        <form method="post" style="margin-top: 20px;">
+            {% csrf_token %}
+            <button type="submit" name="download" class="button download-btn">Download Vote Details</button>
+        </form>
+        <a href="{% url 'results' %}" class="button continue-btn">Continue to Results</a>
+    </div>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard.');
+            });
+        }
+    </script>
+</body>
+</html>

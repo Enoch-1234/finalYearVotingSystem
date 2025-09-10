@@ -1,0 +1,157 @@
+<!-- @format -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Login - Voting System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% load static %}
+    <style>
+      @keyframes fadeInRight {
+        from {
+          opacity: 0;
+          transform: translateX(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .animate-fade-in-right {
+        animation: fadeInRight 0.8s ease-out forwards;
+      }
+     
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col bg-gradient-to-br from-blue-900 via-black to-blue-800 text-gray-800 font-[Inter]">
+    
+
+    <!-- 🔹 Top Banner -->
+    <header
+      class="w-full bg-gradient-to-r bg-gradient-to-br from-blue-900 via-black to-blue-800 text-gray-800 text-white p-4 md:p-6 shadow-md">
+      <div class="max-w-6xl mx-auto flex items-center space-x-4">
+        <!-- School Logo -->
+        <img
+          src="/static/images/WhatsApp Image 2024-10-10 at 16.28.14_40e6de34.jpg"
+          alt="School Logo"
+          class="w-[100px] h-[100px] rounded-full border-2 border-white shadow-md" />
+
+        <!-- School Name / Overview -->
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold">GHANA COMMUNICATION TECHNOLOGY UNIVERSITY</h1>
+          <p class="text-sm md:text-base text-blue-50">
+            KNOWLEDGE COMES FROM LEARNING
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- 🔹 Container -->
+    <div class="flex-1 flex items-center justify-center px-4 py-6">
+      <div
+        class="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        <!-- Left: Login Form -->
+        <div class="p-10 flex flex-col justify-center">
+          <!-- Heading -->
+          <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Welcome Back 👋</h2>
+            <div class="w-16 h-1 bg-blue-600 mt-2 rounded"></div>
+            <p class="text-gray-500 mt-3">
+              Sign in with your student account to cast your vote
+            </p>
+          </div>
+
+          <!-- Form -->
+          <form
+            method="POST"
+            action="{% url 'student_login' %}"
+            class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Index Number -->
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"
+                >👤</span
+              >
+              <input
+                type="text"
+                name="index_number"
+                placeholder="Enter your Index Number"
+                class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 shadow-sm hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700 placeholder-gray-400"
+                required />
+            </div>
+
+            <!-- Password -->
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"
+                >🔒</span
+              >
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter your Password"
+                class="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-300 shadow-sm hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700 placeholder-gray-400"
+                required />
+              <a
+                href="#"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-blue-600 hover:underline">
+                Forgot?
+              </a>
+            </div>
+
+            <!-- Non-field Errors -->
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 text-red-600 text-sm p-2 rounded">
+              {% for error in form.non_field_errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Submit -->
+            <button
+              type="submit"
+              class="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 hover:text-gray-100 hover:shadow-lg transition duration-300">
+              Login
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="flex items-center my-6">
+            <div class="flex-grow h-px bg-gray-300"></div>
+            <span class="mx-3 text-sm text-gray-400">or</span>
+            <div class="flex-grow h-px bg-gray-300"></div>
+          </div>
+
+          <!-- Signup -->
+          <p class="text-sm text-gray-600 text-center">
+            Don’t have an account?
+            <a href="#" class="text-blue-600 hover:underline font-medium"
+              >Sign up</a
+            >
+          </p>
+        </div>
+
+        <!-- Right: Illustration -->
+        <div
+          class="hidden md:flex bg-gradient-to-br from-blue-600 to-yellow-400 items-center justify-center p-8 animate-fade-in-right">
+          <div class="text-center text-white max-w-sm">
+            <img
+              src="/static/images/login vote.jpg"
+              alt="Voting Illustration"
+              class="mx-auto mb-6 w-64 rounded-lg shadow-lg" />
+            <h3 class="text-2xl font-bold mb-2">Cast Your Vote</h3>
+            <p class="text-blue-50">
+              Participate in your school elections securely and easily. Your
+              vote counts!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

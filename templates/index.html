@@ -1,0 +1,135 @@
+<!-- @format -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voting System Overview</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+   <link rel="stylesheet" href="/static/css/overview.css">
+  </head>
+  <body>
+    <div class="parallax-bg"></div>
+    <div class="overview-container">
+      <div class="overview-header">
+        <h1>Voting System Overview</h1>
+        <p>
+          Explore the latest updates, statistics, and key moments in our voting
+          process.
+        </p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="icon">🗳️</div>
+          <h3>Total Votes Cast</h3>
+          <div class="number" data-target="1250">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">👥</div>
+          <h3>Active Voters</h3>
+          <div class="number" data-target="850">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">🏆</div>
+          <h3>Categories</h3>
+          <div class="number" data-target="2">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">⏰</div>
+          <h3>Days Remaining</h3>
+          <div class="number" data-target="5">0</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <h2>Recent Activity</h2>
+        <div class="timeline-item">
+          <div class="date">May 28, 2025</div>
+          <div class="content">
+            <h3>Voting Opened</h3>
+            <p>
+              The voting system is now live for Leadership and Innovation
+              categories.
+            </p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="date">May 29, 2025</div>
+          <div class="content">
+            <h3>500 Votes Reached</h3>
+            <p>Over 500 votes have been cast in the first 24 hours!</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="date">May 30, 2025</div>
+          <div class="content">
+            <h3>New Candidates Added</h3>
+            <p>Additional candidates joined the Innovation category.</p>
+          </div>
+        </div>
+      </div>
+      <div class="call-to-action">
+        <h2>Join the Voting Process!</h2>
+        <p>
+          Cast your vote now and make your voice heard in shaping the future.
+        </p>
+
+        <a href="login.html" class="cta-btn">Vote Now</a>
+      </div>
+    </div>
+    <script>
+      // Animate elements on load
+      document.addEventListener("DOMContentLoaded", () => {
+        const elements = document.querySelectorAll(
+          ".overview-header, .stat-card, .timeline-item, .call-to-action"
+        );
+        elements.forEach((el, index) => {
+          setTimeout(() => {
+            el.classList.add("visible");
+          }, index * 200);
+        });
+      });
+
+      // Parallax background effect
+      window.addEventListener("scroll", () => {
+        const parallax = document.querySelector(".parallax-bg");
+        const scrollPosition = window.pageYOffset;
+        parallax.style.transform = `translateY(${scrollPosition * 0.5}px)`;
+      });
+
+      // Animated number counters
+      const counters = document.querySelectorAll(".number");
+      counters.forEach((counter) => {
+        const updateCount = () => {
+          const target = +counter.getAttribute("data-target");
+          const count = +counter.innerText;
+          const increment = target / 100;
+          if (count < target) {
+            counter.innerText = Math.ceil(count + increment);
+            setTimeout(updateCount, 20);
+          } else {
+            counter.innerText = target;
+          }
+        };
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (entries[0].isIntersecting) {
+              updateCount();
+              observer.unobserve(counter);
+            }
+          },
+          { threshold: 0.5 }
+        );
+        observer.observe(counter);
+      });
+
+      // CTA button click effect
+      document.querySelector(".cta-btn").addEventListener("click", () => {
+        // Replace with actual navigation
+        window.location.href = '/login.html';
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+  {% if results %}
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f5f7fa;">
+          <th style="padding: 10px; border: 1px solid #dee2e6;">Index</th>
+          <th style="padding: 10px; border: 1px solid #dee2e6;">Timestamp</th>
+          <th style="padding: 10px; border: 1px solid #dee2e6;">Status</th>
+          <th style="padding: 10px; border: 1px solid #dee2e6;">Errors</th>
+          <th style="padding: 10px; border: 1px solid #dee2e6;">Hash</th>
+          <th style="padding: 10px; border: 1px solid #dee2e6;">Previous Hash</th>
+          <th style="padding: 10px; border: 1px solid #dee2e6;">Calculated Hash</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for result in results %}
+          <tr>
+            <td style="padding: 10px; border: 1px solid #dee2e6;">{{ result.index }}</td>
+            <td style="padding: 10px; border: 1px solid #dee2e6;">{{ result.timestamp }}</td>
+            <td style="padding: 10px; border: 1px solid #dee2e6; color: {% if result.status == 'Valid' %}green{% else %}red{% endif %};">
+              {{ result.status }}
+            </td>
+            <td style="padding: 10px; border: 1px solid #dee2e6;">
+              {% if result.errors %}
+                {{ result.errors|join:", " }}
+              {% else %}
+                None
+              {% endif %}
+            </td>
+            <td style="padding: 10px; border: 1px solid #dee2e6; word-break: break-all;">{{ result.hash }}</td>
+            <td style="padding: 10px; border: 1px solid #dee2e6; word-break: break-all;">{{ result.previous_hash }}</td>
+            <td style="padding: 10px; border: 1px solid #dee2e6; word-break: break-all;">
+              {{ result.calculated_hash|default:"N/A" }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No blocks found in the blockchain.</p>
+  {% endif %}
+  <a href="{% url 'admin:votingSystem_block_changelist' %}" class="button" style="padding: 10px 20px; background: #0057d9; color: white; text-decoration: none; border-radius: 4px; margin-top: 20px; display: inline-block;">
+    Back to Block List
+  </a>
+{% endblock %}

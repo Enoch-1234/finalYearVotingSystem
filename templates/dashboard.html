@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voting Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% load static %}
+    <style>
+      .step-enter {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      .step-enter-active {
+        opacity: 1;
+        transform: translateX(0);
+        transition: all 0.5s ease;
+      }
+      .step-exit {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .step-exit-active {
+        opacity: 0;
+        transform: translateX(-50px);
+        transition: all 0.5s ease;
+      }
+    </style>
+  </head>
+  <body class="font-[Inter] bg-gradient-to-br from-blue-900 via-black to-blue-800 text-gray-800 min-h-screen">
+    
+    <!-- Navbar -->
+    <nav class="bg-black/60 backdrop-blur-md shadow sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <!-- Logo -->
+        <a href="{% url 'index' %}" class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+          🗳️ Voting System
+        </a>
+
+        <!-- Desktop Links -->
+        <div class="hidden md:flex items-center gap-6">
+          <a href="{% url 'index' %}" class="text-gray-200 hover:text-yellow-300">Dashboard</a>
+          <a href="{% url 'results' %}" class="text-gray-200 hover:text-yellow-300">Results</a>
+          <a href="{% url 'verify_vote' %}" class="text-gray-200 hover:text-yellow-300">Verify Vote</a>
+          <div class="flex items-center gap-3 bg-white px-3 py-1 rounded-full shadow">
+            <span class="text-sm font-medium text-gray-700">
+              {{ request.user.student_profile.first_name }} {{ request.user.student_profile.last_name }}
+            </span>
+            <form method="POST" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="text-red-600 text-sm font-semibold hover:underline">
+                Logout
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="menu-btn" class="md:hidden text-white text-2xl">☰</button>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="menu" class="hidden flex-col md:hidden bg-black/80 text-white px-6 pb-4">
+        <a href="{% url 'index' %}" class="py-2 hover:text-yellow-300">Dashboard</a>
+        <a href="{% url 'results' %}" class="py-2 hover:text-yellow-300">Results</a>
+        <a href="{% url 'verify_vote' %}" class="py-2 hover:text-yellow-300">Verify Vote</a>
+        <div class="flex justify-between items-center bg-white px-3 py-1 rounded-full shadow mt-2">
+          <span class="text-sm font-medium text-gray-700">
+            {{ request.user.student_profile.first_name }} {{ request.user.student_profile.last_name }}
+          </span>
+          <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="text-red-600 text-sm font-semibold hover:underline">
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <header class="text-center mb-8 sm:mb-12">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">Cast Your Vote</h1>
+        <p class="text-gray-300 mt-2 text-sm sm:text-base">Go through each category and choose your candidate</p>
+      </header>
+
+      <!-- Voting Form -->
+      <form id="vote-form" method="POST" action="{% url 'vote' %}" class="relative overflow-hidden bg-white/95 p-6 sm:p-8 rounded-2xl shadow-lg">
+        {% csrf_token %}
+
+        {% for category in categories %}
+        <section class="category-step hidden {% if forloop.first %}block{% endif %}">
+          <h2 class="text-lg sm:text-xl font-semibold text-blue-600 mb-6 text-center">
+            {{ category.name }}
+          </h2>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            {% for candidate in category.candidate_set.all %}
+            <label class="flex flex-col sm:flex-row items-center justify-between border border-gray-300 rounded-lg bg-white shadow-sm hover:shadow-md transition cursor-pointer p-3 gap-4">
+              <div class="flex items-center gap-4">
+                <img src="{{ candidate.photo.url }}" alt="{{ candidate.name }}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md border" />
+                <span class="text-base sm:text-lg font-medium text-gray-800">{{ candidate.name }}</span>
+              </div>
+              <input type="radio" 
+                     name="category-{{ category.id }}" 
+                     value="{{ candidate.id }}" 
+                     data-name="{{ candidate.name }}"
+                     data-photo="{{ candidate.photo.url }}"
+                     class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 focus:ring-blue-500" />
+            </label>
+            {% endfor %}
+          </div>
+        </section>
+        {% endfor %}
+
+        <!-- Confirmation Step -->
+        <section class="category-step hidden" id="confirm-step">
+          <h2 class="text-lg sm:text-xl font-bold text-yellow-500 mb-6 text-center">Confirm Your Votes</h2>
+          <div id="confirm-list" class="space-y-4"></div>
+        </section>
+
+        <!-- Navigation -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
+          <button type="button" id="prevBtn" class="w-full sm:w-auto px-6 py-2 rounded-lg bg-gray-300 text-gray-700 font-medium hover:bg-gray-400">
+            Previous
+          </button>
+          <button type="button" id="nextBtn" class="w-full sm:w-auto px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">
+            Next
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <!-- Script -->
+    <script>
+      // Navbar mobile toggle
+      const menuBtn = document.getElementById("menu-btn");
+      const menu = document.getElementById("menu");
+      menuBtn.addEventListener("click", () => {
+        menu.classList.toggle("hidden");
+      });
+
+      const steps = document.querySelectorAll(".category-step");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      let currentStep = 0;
+
+      function showStep(index) {
+        steps.forEach((step, i) => step.classList.add("hidden"));
+        steps[index].classList.remove("hidden");
+
+        prevBtn.disabled = index === 0;
+        nextBtn.textContent =
+          index === steps.length - 1
+            ? "Submit"
+            : index === steps.length - 2
+            ? "Confirm"
+            : "Next";
+      }
+
+      function buildConfirmation() {
+        const confirmList = document.getElementById("confirm-list");
+        confirmList.innerHTML = "";
+        steps.forEach((step, i) => {
+          if (i < steps.length - 1) {
+            const selected = step.querySelector("input[type=radio]:checked");
+            const categoryTitle = step.querySelector("h2").textContent;
+            if (selected) {
+              const name = selected.dataset.name;
+              const photo = selected.dataset.photo;
+              confirmList.innerHTML += `
+                <div class="p-4 border-2 border-blue-600 bg-blue-50 rounded-lg flex items-center gap-4">
+                  <img src="${photo}" alt="${name}" class="w-12 h-12 rounded-md border"/>
+                  <div>
+                    <strong class="text-blue-600">${categoryTitle}:</strong>
+                    <span class="ml-2 font-medium text-gray-800">${name}</span>
+                  </div>
+                </div>`;
+            }
+          }
+        });
+      }
+
+      prevBtn.addEventListener("click", () => {
+        if (currentStep > 0) {
+          currentStep--;
+          showStep(currentStep);
+        }
+      });
+
+      nextBtn.addEventListener("click", () => {
+        if (currentStep < steps.length - 2) {
+          currentStep++;
+          showStep(currentStep);
+        } else if (currentStep === steps.length - 2) {
+          buildConfirmation();
+          currentStep++;
+          showStep(currentStep);
+        } else {
+          document.getElementById("vote-form").submit();
+        }
+      });
+
+      showStep(currentStep);
+    </script>
+  </body>
+</html>

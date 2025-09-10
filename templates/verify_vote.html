@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verify Vote</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  {% load static %}
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-black to-blue-800 text-gray-200 font-[Inter] min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-black/60 backdrop-blur-md shadow sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <!-- Logo -->
+      <a href="{% url 'index' %}" class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+        🗳️ Voting System
+      </a>
+
+      <!-- Desktop Links -->
+      <div class="hidden md:flex items-center gap-6">
+        <a href="{% url 'index' %}" class="text-gray-200 hover:text-yellow-300">Dashboard</a>
+        <a href="{% url 'results' %}" class="text-gray-200 hover:text-yellow-300">Results</a>
+        <a href="{% url 'verify_vote' %}" class="text-yellow-300 font-semibold">Verify Vote</a>
+        <div class="flex items-center gap-3 bg-white px-3 py-1 rounded-full shadow">
+          <span class="text-sm font-medium text-gray-700">
+            {{ request.user.student_profile.first_name }} {{ request.user.student_profile.last_name }}
+          </span>
+          <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="text-red-600 text-sm font-semibold hover:underline">
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button id="menu-btn" class="md:hidden text-white text-2xl">☰</button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="menu" class="hidden flex-col md:hidden bg-black/80 text-white px-6 pb-4">
+      <a href="{% url 'index' %}" class="py-2 hover:text-yellow-300">Dashboard</a>
+      <a href="{% url 'results' %}" class="py-2 hover:text-yellow-300">Results</a>
+      <a href="{% url 'verify_vote' %}" class="py-2 text-yellow-300 font-semibold">Verify Vote</a>
+      <div class="flex justify-between items-center bg-white px-3 py-1 rounded-full shadow mt-2">
+        <span class="text-sm font-medium text-gray-700">
+          {{ request.user.student_profile.first_name }} {{ request.user.student_profile.last_name }}
+        </span>
+        <form method="POST" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="text-red-600 text-sm font-semibold hover:underline">
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <main class="flex-grow max-w-3xl mx-auto px-4 py-10">
+    <div class="bg-white/95 rounded-xl shadow-lg p-6 sm:p-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-blue-600 mb-4">🔐 Verify Vote</h1>
+      <p class="text-gray-600">Paste your encrypted vote or block hash to verify its authenticity.</p>
+
+      <!-- Messages -->
+      {% if messages %}
+        <div class="mt-4">
+          <!-- {% for message in messages %} -->
+            <p class="{% if message.tags == 'error' %}text-red-600{% else %}text-green-600{% endif %} font-medium">
+              {{ message }}
+            </p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Form -->
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        <textarea 
+          name="vote_input" 
+          placeholder="Enter encrypted vote or block hash"
+          required
+          class="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 font-mono resize-none"
+        ></textarea>
+        <button 
+          type="submit" 
+          class="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-yellow-400 hover:text-gray-900 transition"
+        >
+          Verify
+        </button>
+      </form>
+
+      <!-- Verification Result -->
+      {% if block %}
+      <div class="mt-8 p-5 rounded-lg border border-gray-300 bg-gray-50">
+        <h3 class="text-lg font-semibold text-blue-600 mb-3">Verification Result</h3>
+        <p><strong>Block Index:</strong> {{ block.index }}</p>
+        <p><strong>Timestamp:</strong> {{ block.timestamp }}</p>
+        <p><strong>Block Hash:</strong> {{ block.hash }}</p>
+        <p><strong>Status:</strong>
+          <span class="{% if block.is_valid %}text-green-600{% else %}text-red-600{% endif %} font-bold">
+            {{ block.is_valid|yesno:"Valid,Invalid" }}
+          </span>
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- Back Button -->
+      <div class="mt-6">
+        <a href="{% url 'index' %}" class="inline-block px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+          ← Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Script for mobile menu -->
+  <script>
+    const menuBtn = document.getElementById("menu-btn");
+    const menu = document.getElementById("menu");
+    menuBtn.addEventListener("click", () => menu.classList.toggle("hidden"));
+  </script>
+
+</body>
+</html>
